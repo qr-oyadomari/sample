@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>顧客一覧VF</label>
+    <motif>Custom11: Star</motif>
+    <page>CusManageList</page>
+</CustomTab>

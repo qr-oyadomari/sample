@@ -1,0 +1,1 @@
+<aura:event type="APPLICATION" description="This event is fired when Jquery is loaded" />
