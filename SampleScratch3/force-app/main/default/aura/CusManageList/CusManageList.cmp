@@ -1,0 +1,163 @@
+<aura:component implements="force:appHostable,forceCommunity:availableForAllPageTypes" access="global" controller="CusManageControllerLN" >
+    <ltng:require
+        scripts="{!join(',', 
+            $Resource.jquery + '/jquery/jquery-2.2.4.min.js', 
+            $Resource.jquery + '/jquery/jquery-ui.min.js',
+            $Resource.fixed_midashi + '/fixed_midashi.js')}"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <aura:attribute name="schCusManage" type="CusManage__c"
+         default="{'sobjectType': 'CusManage__c',
+                    'customer_code__c': '',
+                    'Name': ''}"/>
+    <aura:attribute name="cusManageList" type="CusManage__c[]"/>
+    <aura:attribute name="page" type="integer" description="現在のページ"/>
+    <aura:attribute name="pages" type="integer" description="ページ総数"/>
+    <aura:attribute name="total" type="integer" description="レコード総数"/>
+    <aura:attribute name="pageNumberLinks" type="integer[]" description="ページングのリンク"/>
+    
+    <div class="slds-m-around_small">
+        <!--<div class="slds-page-header" role="banner">-->
+            <!--<div class="slds-align_absolute-center">
+                <lightning:button disabled="{!v.page == 1}" variant="brand" label="Previous Page" onclick="{!c.navigate}" />            
+                <lightning:button disabled="{!v.page == v.pages}" aura:id="previousPage" variant="brand" label="Next Page" onclick="{!c.navigate}" />
+            </div>-->
+            <!--<p class="slds-page-header__title slds-truncate">顧客一覧</p>
+            <p class="slds-truncate">Page {!v.page} / {!v.pages} &nbsp; All {!v.total}</p>-->
+            <!--<ui:inputSelect aura:id="recordSize" label="Display Record Per Page: " change="{!c.onSelectChange}">
+                <ui:inputSelectOption text="10" label="10" value="true"/>
+                <ui:inputSelectOption text="15" label="15"/>
+                <ui:inputSelectOption text="20" label="20"/>
+            </ui:inputSelect>-->
+        <!--</div>-->
+        
+        <!--<form id="singForm">-->
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <colgroup>
+                <col width="150px" />
+                <col width="200px" />
+                <col width="200px" />
+                <col  />
+            </colgroup>
+            <tr class="slds-text-title_caps">
+                <td>
+                    <p class="slds-page-header__title slds-truncate">顧客一覧</p>
+                    <p class="slds-truncate">Page {!v.page} / {!v.pages} &nbsp; All {!v.total}</p>
+                </td>
+                <td>
+                    <div class="slds-truncate">
+                        <lightning:input aura:id="CusManageForm" 
+                                         label="顧客コード" 
+                                         name="CusManageCode" 
+                                         value="{!v.schCusManage.customer_code__c}" />
+                    </div>
+                </td>
+                <td>
+                    <div class="slds-truncate">
+                        <lightning:input aura:id="CusManageForm" 
+                                         label="顧客名"
+                                         name="CusManageName" 
+                                         value="{!v.schCusManage.Name}" />
+                    </div>
+                </td>
+                <td>
+                    <div class="slds-truncate">
+                        <lightning:button label="検索" 
+                                          class="" 
+                                          variant="brand" 
+                                          onclick="{!c.schCusManages}" />
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <!--</form>-->
+        
+        <!--<form id="">-->
+        <lightning:button variant="base" label="&lt;&lt; 最初" value="1" onclick="{!c.doPageNumber}" disabled="{!v.page &lt;= 1}"/>
+        <aura:text value="　|　"/>
+        
+        <lightning:button variant="base" label="&lt; 前へ" value="{!v.page - 1}" onclick="{!c.doPageNumber}" disabled="{!v.page &lt;= 1}"/>
+        <aura:text value="　|　"/>
+        
+        <aura:iteration items="{!v.pageNumberLinks}" var="link" indexVar="rowIndex">
+            <lightning:button variant="base" label="{!link}" value="{!link}" onclick="{!c.doPageNumber}" disabled="{!link == v.page}"/>
+            <aura:text value="　|　"/>
+        </aura:iteration>
+        
+        <lightning:button variant="base" label="次へ &gt;" value="{!v.page + 1}" onclick="{!c.doPageNumber}" disabled="{!v.page &gt;= v.pages}"/>
+        <aura:text value="　|　"/>
+        
+        <lightning:button variant="base" label="最後 &gt;&gt;" value="{!v.pages}" onclick="{!c.doPageNumber}" disabled="{!v.page &gt;= v.pages}"/>
+        <!--</form>-->
+        
+        <div id="searchResultDetail">
+        <div class="scroll_div">
+        <table id="cusManageList" class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <thead>
+                <tr class="slds-text-title_caps">
+                    <th scope="col">
+                        <div class="slds-truncate" title="Name">顧客コード</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Name">顧客名</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Name">会社名</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Name">店舗名</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Name">社員番号</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" title="Name">サイン画像</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.cusManageList}" var="cml" indexVar="rowIndex">
+                    <tr>
+                        <td scope="row" style="vertical-align:top;" >
+                            <div class="slds-truncate" title="{!cml.cmRecord.customer_code__c}">{!cml.cmRecord.customer_code__c}</div>
+                        </td>
+                        <td scope="row" style="vertical-align:top;">
+                            <div class="slds-truncate" title="{!cml.cmRecord.Name}">{!cml.cmRecord.Name}</div>
+                        </td>
+                        <td scope="row" style="vertical-align:top;">
+                            <div class="slds-truncate" title="{!cml.cmRecord.company_name__c}">{!cml.cmRecord.company_name__c}</div>
+                        </td>
+                        <td scope="row" style="vertical-align:top;">
+                            <div class="slds-truncate" title="{!cml.cmRecord.store_name__c}">{!cml.cmRecord.store_name__c}</div>
+                        </td>
+                        <td scope="row" style="vertical-align:top;">
+                            <div class="slds-truncate" title="{!cml.cmRecord.empNo__c}">{!cml.cmRecord.empNo__c}</div>
+                        </td>
+                        <td>
+                            <table>
+                                <tbody>
+                                    <aura:iteration items="{!cml.signUrlList}" var="imgs" indexVar="rowIndex">
+                                        <!--<aura:if isTrue="{!(rowIndex + 1) % 2 == 0 || rowIndex == 0}">
+                                            <aura:unescapedHtml value="&lt;tr&gt;"/>
+                                        </aura:if>-->
+                                        <!--<img src="{!imgs}" alt="表示できません" />-->
+                                        <aura:unescapedHtml value="{!imgs}"/>
+                                        <aura:if isTrue="{!(rowIndex + 1) % 2 == 0}">
+                                            <br/>
+                                        </aura:if>
+                                        <!--<aura:if isTrue="{!(rowIndex + 1) % 2 == 0 || rowIndex == 0}">
+                                            <aura:unescapedHtml value="&lt;/tr&gt;"/>
+                                        </aura:if>-->
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </aura:iteration>	
+            </tbody>
+        </table>
+        </div>
+        </div>
+    </div>
+</aura:component>

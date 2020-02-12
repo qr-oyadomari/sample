@@ -1,0 +1,138 @@
+<apex:page controller="CusManageController" sidebar="false" showHeader="true">
+    <apex:includeScript value="{!URLFOR($Resource.jquery, '/jquery/jquery-2.2.4.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jquery, '/jquery/jquery-ui.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.fixed_midashi, '/fixed_midashi.js')}"/>
+    <script type="text/javascript">
+        window.onload = function() {
+            setDispInit();
+        };
+        function setDispInit() {
+            var elem = document.getElementById("{!$Component.singForm.searchResultDetail.cusManageList}");
+            elem.setAttribute("_fixedhead", "rows:{!num_of_rows}; cols:{!num_of_cols}");
+            
+            FixedMidashi.create();
+        }
+    </script>
+    <style type="text/css">
+        <!-- サイン画像 -->
+        .sign_image {
+            border: solid 1px #888;
+        }
+        div.scroll_div {
+            width:100%;
+            overflow: auto;
+            position: relative;
+         }
+    </style>
+    
+    <apex:form id="singForm">
+        <apex:outputPanel id="searchCondition">
+            <table>
+                <colgroup>
+                    <col width="60px" />
+                    <col width="150px" />
+                    <col width="60px" />
+                    <col width="200px" />
+                    <col  />
+                </colgroup>
+                <tr>
+                    <td>
+                        <apex:outputLabel value="顧客コード"/>
+                    </td>
+                    <td>
+                        <apex:inputText value="{!cusCode}" maxlength="6" style="width:60px;"/>
+                    </td>
+                    <td>
+                        <apex:outputLabel value="顧客名"/>
+                    </td>
+                    <td>
+                        <apex:inputText value="{!cusName}"/>
+                    </td>
+                    <td>
+                        <apex:commandButton id="searchBtn" action="{!schCusManages}" value="検索" status="searchStatus" style="font-size:14px;"/>
+                    </td>
+                </tr>
+            </table>
+        </apex:outputPanel>
+        <apex:outputPanel id="paging">
+            <apex:commandLink value="<< 最初" rendered="{!hasPrevious}" action="{!first}" />
+            <apex:outputLabel value="<< 最初" rendered="{!!hasPrevious}" />
+            <apex:outputLabel value="　|　" />
+            
+            <apex:commandLink value="< 前へ" rendered="{!hasPrevious}" action="{!previous}" />
+            <apex:outputLabel value="< 前へ" rendered="{!!hasPrevious}" />
+            <apex:outputLabel value="　|　" />
+            
+            <apex:repeat value="{!pageNumberLinks}" var="links">
+                <apex:commandLink value="{!links}" rendered="{!links != pageNumber}" action="{!doPageNumber}" >
+                    <apex:param value="{!links}" name="clickPageNumber" assignTo="{!clickPageNumber}" />
+                </apex:commandLink>
+                <apex:outputLabel value="{!links}" rendered="{!links == pageNumber}" />
+                <apex:outputLabel value="　|　" />
+            </apex:repeat>
+            
+            <apex:commandLink value="次へ >" rendered="{!hasNext}" action="{!next}" />
+            <apex:outputLabel value="次へ >" rendered="{!!hasNext}" />
+            <apex:outputLabel value="　|　" />
+            
+            <apex:commandLink value="最後 >>" rendered="{!hasNext}" action="{!last}" />
+            <apex:outputLabel value="最後 >>" rendered="{!!hasNext}" />
+            
+            <apex:outputLabel value="　{!recordNumber}件" />
+        </apex:outputPanel>
+        <apex:outputPanel id="searchResult">
+            <apex:pageBlock rendered="{!cusManageList.size == 0}" id="searchResultNone">
+                <span>該当するデータはありません。</span>
+            </apex:pageBlock>
+            <apex:pageBlock rendered="{!cusManageList.size > 0}" id="searchResultDetail">
+                <div class="scroll_div">
+                    <apex:pageBlockTable value="{!cusManageList}" var="cml" id="cusManageList">
+                        <apex:column width="110px" style="vertical-align:top;">
+                            <apex:facet name="header">
+                                <apex:outputText value="顧客コード" />
+                            </apex:facet>
+                            <apex:outputLink value="{!URLFOR('/' + cml.cmRecord.Id)}">{!cml.cmRecord.customer_code__c}</apex:outputLink>
+                        </apex:column>
+                        <apex:column width="110px" style="vertical-align:top;">
+                            <apex:facet name="header">
+                                <apex:outputText value="顧客名" />
+                            </apex:facet>
+                            <apex:outputField value="{!cml.cmRecord.Name}" />
+                        </apex:column>
+                        <apex:column width="150px" style="vertical-align:top;">
+                            <apex:facet name="header">
+                                <apex:outputText value="会社名" />
+                            </apex:facet>
+                            <apex:outputField value="{!cml.cmRecord.company_name__c}" />
+                        </apex:column>
+                        <apex:column width="150px" style="vertical-align:top;">
+                            <apex:facet name="header">
+                                <apex:outputText value="店舗名" />
+                            </apex:facet>
+                            <apex:outputField value="{!cml.cmRecord.store_name__c}" />
+                        </apex:column>
+                        <apex:column width="110px" style="vertical-align:top;">
+                            <apex:facet name="header">
+                                <apex:outputText value="社員番号" />
+                            </apex:facet>
+                            <apex:outputField value="{!cml.cmRecord.empNo__c}" />
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:outputText value="サイン画像" />
+                            </apex:facet>
+                            <apex:pageBlockSection columns="{!num_of_images}">
+                                <apex:repeat value="{!cml.signUrlList}" var="imgs">
+                                    <apex:image value="{!imgs}" styleClass="sign_image" style="{!IF(RIGHT(imgs,7) == 'noimage','width:300px; height:250px;','')}" />
+                                </apex:repeat>
+                            </apex:pageBlockSection>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </div>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        <apex:outputPanel >
+            <apex:actionStatus startText="データの検索中..." stopText="" id="searchStatus" />
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

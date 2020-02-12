@@ -1,0 +1,9 @@
+<!-- ƒTƒCƒ“‰æ‘œ -->
+.sign_image {
+    border: solid 1px #888;
+}
+div.scroll_div {
+    width:100%;
+    overflow: auto;
+    position: relative;
+}
